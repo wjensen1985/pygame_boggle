@@ -366,6 +366,21 @@ class Game():
 
         return
 
+    # display list of words:
+    def disp_word_list(self, surface, word_list, pos, font, color):
+        x, y = pos
+        col_width = 225
+        cols = 0
+        for word in word_list:
+            word_surface = font.render(word, True, color)
+            word_width, word_height = word_surface.get_size()
+            if y >= 650:
+                y = pos[1]
+                cols += 1
+            x = pos[0] + (col_width * cols)
+            surface.blit(word_surface, (x, y))
+            y += word_height
+
     def after_game(self, input):
         if not self.isOpen:
             return False
@@ -379,23 +394,8 @@ class Game():
         # set up display buttons
         playButton = Button((255,255,255), 550, 300, 400, 100, "Play Again")
         mainMenuButton = Button((255,255,255), 550, 500, 400, 100, "Main Menu")
-        prevScore = Button((255,255,255), 550, 100, 400, 100, "Score: 10")
-        wordsFoundTxt = Button((100,100,255), 25, 50, 400, 100, scoreStr)
-
-        # set up display for found words list:
-        def disp_word_list(surface, word_list, pos, font, color):
-            x, y = pos
-            col_width = 225
-            cols = 0
-            for word in word_list:
-                word_surface = font.render(word, True, color)
-                word_width, word_height = word_surface.get_size()
-                if y >= 650:
-                    y = pos[1]
-                    cols += 1
-                x = pos[0] + (col_width * cols)
-                surface.blit(word_surface, (x, y))
-                y += word_height
+        prevScore = Button((255,255,255), 550, 100, 400, 100, scoreStr)
+        wordsFoundTxt = Button((100,100,255), 25, 50, 400, 100, "Words Found:")
 
         while running:
             # disp menu:
@@ -408,7 +408,7 @@ class Game():
             wordsFoundTxt.draw(self.SCREEN)
 
             # display found words list here:
-            disp_word_list(self.SCREEN, foundWords, (50,150), pygame.font.SysFont("Arial", 40), 'black')
+            self.disp_word_list(self.SCREEN, foundWords, (50,150), pygame.font.SysFont("Arial", 40), 'black')
 
             # update screen:
             pygame.display.update()
