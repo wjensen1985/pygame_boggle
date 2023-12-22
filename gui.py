@@ -65,9 +65,9 @@ class Game():
         self.SCREEN_HEIGHT = 700
 
         # set game settings and start up variables
-        self.time_limit = 30
+        self.time_limit = 180
         self.isOpen = True
-        self.useKeyboard = True
+        self.useKeyboard = False
         self.text_box = []
         self.timerDisp = self.time_limit
 
@@ -111,27 +111,39 @@ class Game():
             for c in range(len(self.gui_board[r])):
                 self.gui_board[r][c].draw(self.SCREEN, (0,0,0))
         
+    def reset_game_tile_states(self):
+        for i in range(len(self.gui_board)):
+            for j in range(len(self.gui_board[i])):
+                if self.gui_board[i][j].used:
+                    self.gui_board[i][j].change_state()
+
     def game_loop(self):
         # Game set up:
         score = 0
         foundWords = set()
-        
-        # 0 - 375 is space to the left of the board - make screen bigger/wider? or make text smaller?
-        # center is 187.5
-        timerBox = Button((255,255,255), 100, 100, 200, 100, str(self.time_limit))
-        scoreBox = Button((255,255,255), 100, 300, 200, 100, str(score))
-        
+
+        # Buttons LIsted in graphical order (top to bottom)
+        # Timer Label
+        timerLabelBox = Button((100,100,255), 50, 150, 300, 50, "Time Left:")
+        timerLabelBox.font = pygame.font.SysFont('Arial', 40)
+        # time left:
+        timerBox = Button((255,255,255), 150, 200, 100, 100, str(self.time_limit))
+        # current score:
+        scoreBox = Button((255,255,255), 50, 325, 300, 100, "Score: " + str(score))
+        # pop up messages (word correct/incorrect)
         msgBox = Button((100,100,255), 50, 450, 300, 50, "")
         msgBox.font = pygame.font.SysFont('Arial', 40)
-        
+        # current word string
         textBox = Button((255,255,255), 50, 500, 300, 100, "".join(self.text_box))
         textBox.font = pygame.font.SysFont('Arial', 40)
-        # button with blue background (use for error/word guess messages): self.loading_msg = Button((100,100,255), 250, 250, 500, 200, "Loading")
+        # switch between using keyboard/mouse button
+        switchCtrlsBtn = Button((225,255,255), 50, 50, 300, 50, "Use Mouse" if self.useKeyboard else "Use Keyboard")
+        switchCtrlsBtn.font = pygame.font.SysFont('Arial', 40)
+
 
         self.gameSession.board.solution_set.clear()
         self.gameSession.board.shuffle()
         self.gameSession.board.solve_board(self.gameSession.dictionary)
-        # print(self.gameSession.board.solution_set)
 
         self.make_gui_board()
 
@@ -143,24 +155,17 @@ class Game():
             for j in range(len(self.gui_board[i])):
                 self.gui_board[i][j].prevStateTime = 0
 
-        # (re)sets last display update time for cmd line timer
-        # lastTimeDispUpdate = 0
-
         #start game/event handler loop
         while running:
             elapsed_time = time.time() - start_time
             if elapsed_time > self.time_limit:
-                # print(30)
                 timerBox.text = str(int(self.time_limit))
                 running = False
                 continue
-            # if elapsed_time >= 1 + lastTimeDispUpdate:
-            #     print(int(elapsed_time))
-            #     lastTimeDispUpdate = elapsed_time
 
             textBox.text = "".join(self.text_box)
             timerBox.text = str(self.time_limit - int(elapsed_time))
-            scoreBox.text = str(score)
+            scoreBox.text = "Score: " + str(score)
             
             self.SCREEN.fill((100,100,255))
 
@@ -178,6 +183,10 @@ class Game():
             scoreBox.draw(self.SCREEN)
             # pop up messages
             msgBox.draw(self.SCREEN)
+            # Timer Label Text:
+            timerLabelBox.draw(self.SCREEN)
+            # change between using keyboard/mouse button
+            switchCtrlsBtn.draw(self.SCREEN)
 
             #update display
             pygame.display.update()
@@ -197,17 +206,39 @@ class Game():
                         for i in range(len(self.gui_board)):
                             for j in range(len(self.gui_board[i])):
                                 if self.gui_board[i][j].isOver(pos):
-                                    print("button clicked")
-                                    # if not self.gui_board[i][j].used:
-                                    #     self.text_box.append(self.gui_board[i][j].text)
-                                    #     print("curr string: " + "".join(self.text_box))
+                                    if not self.gui_board[i][j].used:
+                                        self.text_box.append(self.gui_board[i][j].text)
+                                    else:
+                                        # submit word guess with current string
+                                        isWord = self.gameSession.board.check_word_guess("".join(self.text_box))
+                                        if isWord:
+                                            if ("".join(self.text_box)) in foundWords:
+                                                msgBox.text = "Word already found"
+                                            else:
+                                                foundWords.add("".join(self.text_box))
+                                                wordScore = max(1, len(self.text_box) - 3)
+                                                msgBox.text = "Word Score: " + str(wordScore)
+                                                score += wordScore
+                                        else:
+                                            msgBox.text = "Not a word!"
+                                        self.text_box = []
+
+                                        # need to reset state of all gameTileButtons
+                                        self.reset_game_tile_states()
+
+                                        continue
 
                                     self.gui_board[i][j].change_state()
                                     self.gui_board[i][j].prevStateTime = elapsed_time
-                                    # add call backs for either appending letter or submitting current word
 
-                    #check for options button (to switch self.useKeyboard), will always be active:
+                    # check for options button (to switch self.useKeyboard), will always be active:
+                    if switchCtrlsBtn.isOver(pos):
+                        self.useKeyboard = not self.useKeyboard
+                        switchCtrlsBtn.text = "Use Mouse" if self.useKeyboard else "Use Keyboard"
+                        self.reset_game_tile_states()
+                        self.text_box = []
 
+                # MOUSE HOVERS (for buttons)
                 if not self.useKeyboard:
                     # MOUSE HOVERS (for buttons)
                     if event.type == pygame.MOUSEMOTION:
@@ -218,6 +249,13 @@ class Game():
                                 else:
                                     self.gui_board[i][j].color = self.gui_board[i][j].stateColor
                 
+                # switchCtrlsBtn Hover color change
+                if event.type == pygame.MOUSEMOTION:
+                    if switchCtrlsBtn.isOver(pos):
+                        switchCtrlsBtn.color = (225,125,125)
+                    else:
+                        switchCtrlsBtn.color = (255,255,255)
+
                 # keyboard typing events
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE and self.useKeyboard:
@@ -226,23 +264,17 @@ class Game():
 
 
                     elif event.key == pygame.K_RETURN and self.useKeyboard:
-                        #guess word
-                        # print("Guessed: " + "".join(self.text_box))
-                        # add message to gui here
+                        # guess word
                         isWord = self.gameSession.board.check_word_guess("".join(self.text_box))
                         if isWord:
                             if ("".join(self.text_box)) in foundWords:
                                 msgBox.text = "Word already found"
                             else:
-                                # print("is a word")
-                                # add message to gui here
                                 foundWords.add("".join(self.text_box))
                                 wordScore = max(1, len(self.text_box) - 3)
                                 msgBox.text = "Word Score: " + str(wordScore)
                                 score += wordScore
                         else:
-                            # print("not a word")
-                            # add message to gui here
                             msgBox.text = "Not a word!"
                         self.text_box = []
 
@@ -302,16 +334,14 @@ class Game():
                             self.text_box.append("Y")
                         elif event.key == pygame.K_z:
                             self.text_box.append("Z")
-                    else:
+                    elif self.useKeyboard:
                         # print("guess too long already")
                         msgBox.text = "Guess too long already"    
 
 
                     # print("curr string: " + "".join(self.text_box))
 
-        # once have end screen and/or menu set up, will go there instead of quiting pygame
-        # print(f"score: {score}")
-        # pygame.quit()
+
         self.inGame = False
         self.inAfterGame = True
         self.text_box = []
