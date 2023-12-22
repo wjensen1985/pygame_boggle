@@ -320,24 +320,17 @@ class Game():
         return output    
 
     def main_menu(self):
-        # print("main menu")
         running = True
         playButton = Button((255,255,255), 250, 250, 500, 200, "Play")
-        start_time = time.time()
         newGame = False
 
         while running:
-            # elapsed_time = time.time() - start_time
-
             if self.inGame:
-                # score, outputs, etc (need these as member vars?) = self.game_loop
                 outputs = self.game_loop()
             
             if self.inAfterGame:
                 newGame = self.after_game(outputs)
-                # when done set after game to False
-                # #how to handle play another game?
-                # # set inGame to True again?
+
 
             if newGame:
                 self.inGame = True
@@ -347,6 +340,7 @@ class Game():
                 running = False
                 pygame.quit()
                 break
+            
             # disp menu:
             self.SCREEN.fill((100,100,255))
 
@@ -375,18 +369,33 @@ class Game():
     def after_game(self, input):
         if not self.isOpen:
             return False
-        # can pass more stuff in here later if need to display certain game info after the current game ends
-        # print("after game screen")
-        # print("Previous Score: " + str(score))
+
         score, foundWordsSet = input
         foundWords = list(foundWordsSet)
-        print(foundWords)
-        scoreStr = "Previous Score: " + str(score)
+        scoreStr = "Score: " + str(score)
 
         running = True
-        playButton = Button((255,255,255), 250, 300, 500, 100, "Play Again")
-        mainMenuButton = Button((255,255,255), 250, 500, 500, 100, "Main Menu")
-        prevScore = Button((255,255,255), 250, 100, 500, 100, scoreStr)
+
+        # set up display buttons
+        playButton = Button((255,255,255), 550, 300, 400, 100, "Play Again")
+        mainMenuButton = Button((255,255,255), 550, 500, 400, 100, "Main Menu")
+        prevScore = Button((255,255,255), 550, 100, 400, 100, "Score: 10")
+        wordsFoundTxt = Button((100,100,255), 25, 50, 400, 100, scoreStr)
+
+        # set up display for found words list:
+        def disp_word_list(surface, word_list, pos, font, color):
+            x, y = pos
+            col_width = 225
+            cols = 0
+            for word in word_list:
+                word_surface = font.render(word, True, color)
+                word_width, word_height = word_surface.get_size()
+                if y >= 650:
+                    y = pos[1]
+                    cols += 1
+                x = pos[0] + (col_width * cols)
+                surface.blit(word_surface, (x, y))
+                y += word_height
 
         while running:
             # disp menu:
@@ -396,6 +405,10 @@ class Game():
             playButton.draw(self.SCREEN)
             mainMenuButton.draw(self.SCREEN)
             prevScore.draw(self.SCREEN)
+            wordsFoundTxt.draw(self.SCREEN)
+
+            # display found words list here:
+            disp_word_list(self.SCREEN, foundWords, (50,150), pygame.font.SysFont("Arial", 40), 'black')
 
             # update screen:
             pygame.display.update()
@@ -427,5 +440,4 @@ class Game():
 
 if __name__ == "__main__":
     g = Game()
-    # g.game_loop()
     g.main_menu()
