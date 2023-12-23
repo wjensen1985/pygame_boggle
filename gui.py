@@ -110,7 +110,8 @@ class Game():
         for r in range(len(self.gui_board)):
             for c in range(len(self.gui_board[r])):
                 self.gui_board[r][c].draw(self.SCREEN, (0,0,0))
-        
+    
+    # sets all game tile states to not used
     def reset_game_tile_states(self):
         for i in range(len(self.gui_board)):
             for j in range(len(self.gui_board[i])):
@@ -132,12 +133,12 @@ class Game():
         scoreBox = Button((255,255,255), 50, 325, 300, 100, "Score: " + str(score))
         # pop up messages (word correct/incorrect)
         msgBox = Button((100,100,255), 50, 450, 300, 50, "")
-        msgBox.font = pygame.font.SysFont('Arial', 40)
+        msgBox.font = pygame.font.SysFont('Arial', 30)
         # current word string
         textBox = Button((255,255,255), 50, 500, 300, 100, "".join(self.text_box))
         textBox.font = pygame.font.SysFont('Arial', 40)
         # switch between using keyboard/mouse button
-        switchCtrlsBtn = Button((225,255,255), 50, 50, 300, 50, "Use Mouse" if self.useKeyboard else "Use Keyboard")
+        switchCtrlsBtn = Button((255,255,255), 50, 50, 300, 50, "Use Mouse" if self.useKeyboard else "Use Keyboard")
         switchCtrlsBtn.font = pygame.font.SysFont('Arial', 40)
 
 
@@ -166,7 +167,7 @@ class Game():
             textBox.text = "".join(self.text_box)
             timerBox.text = str(self.time_limit - int(elapsed_time))
             scoreBox.text = "Score: " + str(score)
-            
+
             self.SCREEN.fill((100,100,255))
 
             #draw board background
@@ -193,13 +194,13 @@ class Game():
 
             # pygame event handler:
             for event in pygame.event.get():
-                pos = pygame.mouse.get_pos()
                 if event.type == pygame.QUIT:
                     running = False
                     pygame.quit()
                     self.isOpen = False
                     break
-
+                
+                pos = pygame.mouse.get_pos()
                 # mouse clicks for buttons
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if not self.useKeyboard:
@@ -231,10 +232,11 @@ class Game():
                                     self.gui_board[i][j].change_state()
                                     self.gui_board[i][j].prevStateTime = elapsed_time
 
-                    # check for options button (to switch self.useKeyboard), will always be active:
+                #     # check for options button (to switch self.useKeyboard), will always be active:
                     if switchCtrlsBtn.isOver(pos):
                         self.useKeyboard = not self.useKeyboard
                         switchCtrlsBtn.text = "Use Mouse" if self.useKeyboard else "Use Keyboard"
+                        msgBox.text = "Now Using Mouse" if not self.useKeyboard else "Now Using Keyboard"
                         self.reset_game_tile_states()
                         self.text_box = []
 
@@ -351,16 +353,18 @@ class Game():
 
     def main_menu(self):
         running = True
-        playButton = Button((255,255,255), 250, 250, 500, 200, "Play")
         newGame = False
 
+        playButton = Button((255,255,255), 250, 100, 500, 100, "Play")
+        viewHighScores = Button((255,255,255), 250, 300, 500, 100, "View Highscores")
+        optionsBtn = Button((255,255,255), 250, 500, 500, 100, "Options")
+        
         while running:
             if self.inGame:
                 outputs = self.game_loop()
             
             if self.inAfterGame:
                 newGame = self.after_game(outputs)
-
 
             if newGame:
                 self.inGame = True
@@ -376,6 +380,8 @@ class Game():
 
             # disp buttons:
             playButton.draw(self.SCREEN)
+            optionsBtn.draw(self.SCREEN)
+            viewHighScores.draw(self.SCREEN)
             
             # update screen:
             pygame.display.update()
@@ -393,6 +399,10 @@ class Game():
                     if playButton.isOver(pos):
                         # print("play button clicked")
                         self.inGame = True
+                    if optionsBtn.isOver(pos):
+                        print("go to options menu")
+                    if viewHighScores.isOver(pos):
+                        print("go to high scores screen")
 
         return
 
@@ -403,7 +413,8 @@ class Game():
         cols = 0
         for word in word_list:
             word_surface = font.render(word, True, color)
-            word_width, word_height = word_surface.get_size()
+            # word_width, word_height = word_surface.get_size()
+            word_height = 31
             if y >= 650:
                 y = pos[1]
                 cols += 1
@@ -438,7 +449,7 @@ class Game():
             wordsFoundTxt.draw(self.SCREEN)
 
             # display found words list here:
-            self.disp_word_list(self.SCREEN, foundWords, (50,150), pygame.font.SysFont("Arial", 40), 'black')
+            self.disp_word_list(self.SCREEN, foundWords, (50,150), pygame.font.SysFont("Arial", 30), 'black')
 
             # update screen:
             pygame.display.update()

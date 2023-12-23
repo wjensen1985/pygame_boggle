@@ -7,14 +7,17 @@ WIDTH = 1000
 HEIGHT = 700
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# maxH = [0]
 
 def disp_word_list(surface, word_list, pos, font, color):
     x, y = pos
-    col_width = 225
+    col_width = 175
     cols = 0
     for word in word_list:
         word_surface = font.render(word, True, color)
-        word_width, word_height = word_surface.get_size()
+        # word_width, word_height = word_surface.get_size()
+        word_height = 31
+        # maxH[0] = max(word_height, maxH[0])
         if y >= 650:
             y = pos[1]
             cols += 1
@@ -31,9 +34,16 @@ wordsFoundTxt = Button((100,100,255), 25, 50, 400, 100, "Words Found:")
 # word list area: y1: 150px (+50?), x1: 50px (25?) --- x2: 500px y2: 650px
 # dx = 450px = 150px each col
 
-foundWords = ['start', 'test', 'aseghl', 'askldf', 'skdflsdjfk', 'sdklf','sjdkf','ksdfj' ,'ksdfj' ,'ksdfj' ,'ksdfj' ,'dkf','dkf','dkf','dkf','dkf','dkf','end']
+foundWords = ['start', 'test', 'aseghl', 'aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl',
+              'aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl',
+              'aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','askldf', 'qwsskdflsdjfk', 
+              'sdklf','sjdkf','ksdfj' ,'ksdfj' ,'ksdfj' ,'ksdfj' ,'dkf','dkf','dkf','dkf','dkf','dkf','dkf',
+              'dkf','dkf','dkf','dkf','dkf','dkf','dkf', 'end']
+
 print(len(foundWords))
 
+# disp_word_list(screen, foundWords, (50,150), pygame.font.SysFont("Arial", 30), 'black')
+# print(maxH)
 while True:
     for events in pygame.event.get():
         if events.type == pygame.QUIT:
@@ -49,7 +59,7 @@ while True:
     wordsFoundTxt.draw(screen)
 
     # display found words list here:
-    disp_word_list(screen, foundWords, (50,150), pygame.font.SysFont("Arial", 40), 'black')
+    disp_word_list(screen, foundWords, (50,150), pygame.font.SysFont("Arial", 30), 'black')
 
     # update screen:
     pygame.display.update()
