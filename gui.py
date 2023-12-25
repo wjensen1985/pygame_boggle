@@ -1,5 +1,7 @@
 import pygame
 import time
+import bisect
+import os
 from boggle import *
 
 class Button:
@@ -87,6 +89,16 @@ class Game():
         # (has letter states for current board)
         self.gameSession = Session()
 
+        # load in high scores:
+        if not os.path.exists('highScores.pkl'):
+            self.highScores = [0,0,0,0,0]
+            with open('highScores.pkl', 'wb') as f:
+                pickle.dump(self.highScores, f)
+        else:
+            with open('highScores.pkl', 'rb') as f:
+              self.highScores = pickle.load(f)
+        # print(self.highScores)
+
         # create gui board object (grid of gametile buttons, gui only)
         self.gui_board = [[None]*4 for _ in range(self.gameSession.board.size)]
         self.make_gui_board()
@@ -117,6 +129,15 @@ class Game():
             for j in range(len(self.gui_board[i])):
                 if self.gui_board[i][j].used:
                     self.gui_board[i][j].change_state()
+
+    def updateHighScores(self, newScore):
+        self.highScores.append(newScore)
+        self.highScores.sort(reverse = True)
+        if len(self.highScores) > 5:
+            self.highScores.pop()
+        # print(self.highScores)
+        with open('highScores.pkl', 'wb') as f:
+            pickle.dump(self.highScores, f)
 
     def game_loop(self):
         # Game set up:
@@ -429,6 +450,30 @@ class Game():
         score, foundWordsSet = input
         foundWords = list(foundWordsSet)
         scoreStr = "Score: " + str(score)
+        scoreMsgStr = ""
+        # update high scores list (will check if needed in func call)
+        if score >= self.highScores[-1]:
+            # print(self.highScores)
+            tmp = self.highScores.copy()
+            tmp.reverse()
+            best = bisect.bisect_left(tmp, score)
+            tmp.insert(best, score)
+            tmp.reverse()
+            if len(tmp) > 5:
+                tmp.pop()
+            if best == 5:
+                numPostFix = ''
+            elif best == 4:
+                numPostFix = 'nd '
+            elif best == 3:
+                numPostFix = 'rd '
+            else:
+                numPostFix = 'th '
+            # set message about score here:
+            # print(f'you got the {str(min(6-best, 5))+numPostFix if best != 5 else ""}best score! scores: {tmp}!')
+            scoreMsgStr = f'You got the {str(min(6-best, 5))+numPostFix if best != 5 else ""}best score!'
+
+        self.updateHighScores(score)
 
         running = True
 
@@ -437,6 +482,9 @@ class Game():
         mainMenuButton = Button((255,255,255), 550, 500, 400, 100, "Main Menu")
         prevScore = Button((255,255,255), 550, 100, 400, 100, scoreStr)
         wordsFoundTxt = Button((100,100,255), 25, 50, 400, 100, "Words Found:")
+
+        scoreMsgBox = Button((100,100,255), 550, 50, 400, 50, scoreMsgStr)
+        scoreMsgBox.font = pygame.font.SysFont('Arial', 30)
 
         while running:
             # disp menu:
@@ -447,6 +495,7 @@ class Game():
             mainMenuButton.draw(self.SCREEN)
             prevScore.draw(self.SCREEN)
             wordsFoundTxt.draw(self.SCREEN)
+            scoreMsgBox.draw(self.SCREEN)
 
             # display found words list here:
             self.disp_word_list(self.SCREEN, foundWords, (50,150), pygame.font.SysFont("Arial", 30), 'black')

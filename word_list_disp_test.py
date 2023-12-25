@@ -33,6 +33,13 @@ wordsFoundTxt = Button((100,100,255), 25, 50, 400, 100, "Words Found:")
 # 50 px gap
 # word list area: y1: 150px (+50?), x1: 50px (25?) --- x2: 500px y2: 650px
 # dx = 450px = 150px each col
+def createHighScoresPickle():
+    # creat initial high scores list and save to disc w/pickle
+    highScores = [0,0,0,0,0] 
+    with open('highScores.pkl', 'wb') as f:
+        pickle.dump(highScores, f)
+
+createHighScoresPickle()
 
 foundWords = ['start', 'test', 'aseghl', 'aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl',
               'aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl','aseghl',

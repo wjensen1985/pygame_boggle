@@ -1,8 +1,5 @@
 import csv
 import random
-# import enchant
-import time
-import os
 import pickle
 
 class letter_die:
@@ -287,6 +284,7 @@ class Session():
             self.dictionary = pickle.load(f)
         self.board = GameBoard(4)
 
+        ## make this in to stand alone function in the file, when updating docs
         ## code used to create prefixtrie and save to pickled file, this will be loaded and used as self.dictionary
         # f = open("words_alpha.txt","r")
         # all_words_list = f.read().splitlines()
