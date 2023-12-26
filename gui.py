@@ -69,10 +69,17 @@ class Game():
         # set game settings and start up variables
         self.time_limit = 180
         self.isOpen = True
-        self.useKeyboard = False
         self.text_box = []
         self.timerDisp = self.time_limit
 
+        # load in saved option settings
+        if not os.path.exists('options.pkl'):
+            self.useKeyboard = False
+            with open('options.pkl', 'wb') as f:
+                pickle.dump(self.useKeyboard, f)
+        else:
+            with open('options.pkl', 'rb') as f:
+              self.useKeyboard = pickle.load(f)
 
         # Create the screen object
         # The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
@@ -155,6 +162,9 @@ class Game():
         # pop up messages (word correct/incorrect)
         msgBox = Button((100,100,255), 50, 450, 300, 50, "")
         msgBox.font = pygame.font.SysFont('Arial', 30)
+        # pop up messages (word correct/incorrect)
+        escMsgBox = Button((100,100,255), 300, 625, 400, 50, "Press 'ESC' key to end game")
+        escMsgBox.font = pygame.font.SysFont('Arial', 30)
         # current word string
         textBox = Button((255,255,255), 50, 500, 300, 100, "".join(self.text_box))
         textBox.font = pygame.font.SysFont('Arial', 40)
@@ -209,6 +219,8 @@ class Game():
             timerLabelBox.draw(self.SCREEN)
             # change between using keyboard/mouse button
             switchCtrlsBtn.draw(self.SCREEN)
+            # msg about ending game w/esc key
+            escMsgBox.draw(self.SCREEN)
 
             #update display
             pygame.display.update()
@@ -216,6 +228,8 @@ class Game():
             # pygame event handler:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    with open('options.pkl', 'wb') as f:
+                        pickle.dump(self.useKeyboard, f)
                     running = False
                     pygame.quit()
                     self.isOpen = False
@@ -369,6 +383,10 @@ class Game():
         self.inAfterGame = True
         self.text_box = []
 
+        # save options to disc
+        with open('options.pkl', 'wb') as f:
+            pickle.dump(self.useKeyboard, f)
+            
         output = [score, foundWords]
         return output    
 
@@ -421,12 +439,131 @@ class Game():
                         # print("play button clicked")
                         self.inGame = True
                     if optionsBtn.isOver(pos):
-                        print("go to options menu")
+                        tmp = self.options_menu()
+                        if not tmp:
+                            running = False
+                            self.isOpen = False
                     if viewHighScores.isOver(pos):
-                        print("go to high scores screen")
+                        tmp = self.show_high_scores()
+                        if not tmp:
+                            running = False
+                            self.isOpen = False
+                            break
+                
+                # button hover color changes
+                if event.type == pygame.MOUSEMOTION:
+                    if playButton.isOver(pos):
+                        playButton.color = (225,125,125)
+                    else:
+                        playButton.color = (255,255,255)
+                    if viewHighScores.isOver(pos):
+                        viewHighScores.color = (225,125,125)
+                    else:
+                        viewHighScores.color = (255,255,255)
+                    if optionsBtn.isOver(pos):
+                        optionsBtn.color = (225,125,125)
+                    else:
+                        optionsBtn.color = (255,255,255)
 
         return
+    
+    def options_menu(self):
+        running = True
 
+        # set up display buttons
+        mainMenuButton = Button((255,255,255), 300, 200, 400, 100, "Main Menu")
+        switchCtrlsBtn = Button((255,255,255), 300, 400, 400, 100, "Use Mouse" if self.useKeyboard else "Use Keyboard")
+
+        while running:
+            # disp menu:
+            self.SCREEN.fill((100,100,255))
+
+            # disp buttons:
+            mainMenuButton.draw(self.SCREEN)
+            switchCtrlsBtn.draw(self.SCREEN)
+
+            # update screen:
+            pygame.display.update()
+            
+            # pygame event handler:
+            for event in pygame.event.get():
+                pos = pygame.mouse.get_pos()
+                if event.type == pygame.QUIT:
+                    running = False
+                    pygame.quit()
+                    self.isOpen = False
+                    break
+
+                # mouse clicks for buttons
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if mainMenuButton.isOver(pos):
+                        return True
+                    if switchCtrlsBtn.isOver(pos):
+                        self.useKeyboard = not self.useKeyboard
+                        switchCtrlsBtn.text = "Use Mouse" if self.useKeyboard else "Use Keyboard"
+                        with open('options.pkl', 'wb') as f:
+                            pickle.dump(self.useKeyboard, f)
+                
+                # Main Menu Button Hover color change
+                if event.type == pygame.MOUSEMOTION:
+                    if mainMenuButton.isOver(pos):
+                        mainMenuButton.color = (225,125,125)
+                    else:
+                        mainMenuButton.color = (255,255,255)
+                    if switchCtrlsBtn.isOver(pos):
+                        switchCtrlsBtn.color = (225,125,125)
+                    else:
+                        switchCtrlsBtn.color = (255,255,255)
+
+        return False        
+
+    def show_high_scores(self):
+        running = True
+
+        # set up display buttons
+        mainMenuButton = Button((255,255,255), 300, 50, 400, 100, "Main Menu")
+        scoreMsgBox = Button((255,255,255), 300, 200, 400, 75, "Best Scores:")
+        scoreMsgBox.font = pygame.font.SysFont('Arial', 45)
+        scoresBtnsArry = [Button((255,255,255), 300, 275 + (75*idx), 400, 75, f'Rank #{idx+1}: {score} points') for idx, score in enumerate(self.highScores)]
+        for btn in scoresBtnsArry:
+            btn.font = pygame.font.SysFont('Arial', 45)
+
+        while running:
+            # disp menu:
+            self.SCREEN.fill((100,100,255))
+
+            # disp buttons:
+            mainMenuButton.draw(self.SCREEN)
+            scoreMsgBox.draw(self.SCREEN)
+            for scoreBtn in scoresBtnsArry:
+                scoreBtn.draw(self.SCREEN)
+
+            # update screen:
+            pygame.display.update()
+            
+            # pygame event handler:
+            for event in pygame.event.get():
+                pos = pygame.mouse.get_pos()
+                if event.type == pygame.QUIT:
+                    running = False
+                    pygame.quit()
+                    self.isOpen = False
+                    break
+
+                # mouse clicks for buttons
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if mainMenuButton.isOver(pos):
+                        return True
+                
+                # Main Menu Button Hover color change
+                if event.type == pygame.MOUSEMOTION:
+                    if mainMenuButton.isOver(pos):
+                        mainMenuButton.color = (225,125,125)
+                    else:
+                        mainMenuButton.color = (255,255,255)
+
+        return False
+    
     # display list of words:
     def disp_word_list(self, surface, word_list, pos, font, color):
         x, y = pos
@@ -523,6 +660,17 @@ class Game():
                         # print("main menu clicked")
                         self.inAfterGame = False
                         return False
+                
+                # button hover color changes
+                if event.type == pygame.MOUSEMOTION:
+                    if playButton.isOver(pos):
+                        playButton.color = (225,125,125)
+                    else:
+                        playButton.color = (255,255,255)
+                    if mainMenuButton.isOver(pos):
+                        mainMenuButton.color = (225,125,125)
+                    else:
+                        mainMenuButton.color = (255,255,255)
 
 
         self.inAfterGame = False

@@ -1,5 +1,6 @@
-# high scores file, will be created/stored locally
+# high scores and settings files, will be created/stored locally for each user not in repo
 /highScores.pkl
+/options.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
