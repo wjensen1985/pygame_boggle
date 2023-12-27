@@ -1,6 +1,7 @@
 import csv
 import random
 import pickle
+import os
 
 class letter_die:
     def __init__(self, possible_letters = None):
@@ -20,7 +21,7 @@ class letter_die:
             self.current_letter = self.possible_letters[letter_index]
         else:
             print("index out large, not enough possible letters")
-
+    
     def __repr__(self):
         error_msg = "current_letter is not set"
 
@@ -29,21 +30,22 @@ class letter_die:
         else:
             return error_msg
 
+# 
 class GameBoard:
     def __init__(self, size):
         self.size = size
         self.dice = self.tile_set_up(self.size)
-        self.board = self.board_set_up(self.dice, self.size)# is 2d grid of self.size x self.size
+        
+        # is 2d grid of self.size x self.size
+        self.board = self.board_set_up(self.dice, self.size)
+
         self.letterPositions = {}
         self.neighbors = {}
 
-        # self.dictionary = enchant.Dict("en_US")
         self.solution_set = set()
 
         self.set_letter_positions()
         self.set_neighbors()
-        #self.solve_board()
-        #print(self)
 
     def shuffle(self):
         self.dice = self.tile_set_up(self.size)
@@ -72,7 +74,6 @@ class GameBoard:
 
         for die in dice:
             die.set_current_letter(random.randint(0,5))
-            # print(die)
 
         for i in range(board_size):
             board.append([])
@@ -82,6 +83,7 @@ class GameBoard:
 
         return board
     
+    # prints current board in cmd line with lines/spacers 
     def __repr__(self):
         return '\n---------------------\n'.join([' | '.join(" Qu" if c =='QU' else " " + str(c) + " " for c in row) for row in self.board])
     
@@ -92,7 +94,6 @@ class GameBoard:
                     self.letterPositions[self.board[i][j].upper()].append((i*4 + j))
                 else:
                     self.letterPositions[self.board[i][j].upper()] = [(i*4 + j)]
-        # print(self.letterPositions)
     
     def set_neighbors(self):
         for i in range(self.size**2):
@@ -211,9 +212,9 @@ class GameBoard:
             # print(curPath)
             # print(type(curString))
             # print(curString)
+            #add a check here w/Trie so that can cut off calls that won't ever result in a word
             if not preFixTrie.startsWith(curString):
                 return
-            #add a check here w/Trie so that can cut off calls that won't ever result in a word
 
             ####### MAKE CURR PATH A LIST OF TUPLES WITH THE I,J POSITION OF EACH LETTER, THEN MAKE A VARIABLE WITH CURRSTRING, WHICH HAS THE CURRENT LETTER STRING
             ####### THIS WAY CAN HAVE THE PATH SO WHEN DISPLAYING ANSWERS LATER, CAN DISPLAY THE ANSWER PATH WHEN ANSWER WORD IS CLICKED
@@ -277,25 +278,37 @@ class Trie:
                 return False
             curr = curr.children[c]
         return True
-    
+
+# Session object instantiates a GameBoard Object and has the function for cmd line game play
+# the Session (and its GameBoard) can be used separately to set up the board and dictionary
+# for play in other files(gui.py)
 class Session():
     def __init__(self):
-        with open('preFixTrie.pickle','rb') as f:
-            self.dictionary = pickle.load(f)
+        # init GameBoard object
         self.board = GameBoard(4)
 
-        ## make this in to stand alone function in the file, when updating docs
-        ## code used to create prefixtrie and save to pickled file, this will be loaded and used as self.dictionary
-        # f = open("words_alpha.txt","r")
-        # all_words_list = f.read().splitlines()
-        # # all_words_set = set(all_words_list)
-        # preFixTrie = Trie()
-        # for w in all_words_list:
-        #     preFixTrie.insert(w.upper())
+        # load in saved preFixTrie from .pkl file if it exists, else create one
+        if not os.path.exists('preFixTrie.pickle'):
+            self.createDict()
+            with open('preFixTrie.pickle','rb') as f:
+                self.dictionary = pickle.load(f)
+        else:
+            with open('preFixTrie.pickle', 'rb') as f:
+                self.dictionary = pickle.load(f)
+
+    # function to create a preFixTrie and pickle the object to disc
+    # after being created once, this object will be loaded in to self.dictionary
+    def createDict(self):
+        f = open("words_alpha.txt","r")
+        all_words_list = f.read().splitlines()
+        preFixTrie = Trie()
+        for w in all_words_list:
+            preFixTrie.insert(w.upper())
         
-        # with open('preFixTrie.pickle', 'wb') as f:
-        #     pickle.dump(preFixTrie, f)
+        with open('preFixTrie.pickle', 'wb') as f:
+            pickle.dump(preFixTrie, f)
     
+    # function for cmd lien game play
     def startGame(self):
         self.board.solution_set.clear()
         self.board.shuffle()
@@ -304,15 +317,10 @@ class Session():
 
         print("game started")
         score = 0
-        # time_limit = 5
         guess_limit = 3
         guesses = 0
 
-        # start_time = time.time()
         while True:
-            # elapsed_time = time.time() - start_time
-            # if elapsed_time >= time_limit:
-            #     break
             if guesses >= guess_limit:
                 break
             w = input("enter word: ").upper()
@@ -324,16 +332,13 @@ class Session():
                 score += len(w)
             print("score: " + str(score))
 
-        # dictionary = enchant.Dict("en_US")
-        # print(check_guess(w))
-        # guessResult = dictionary.check(w)
         print("all guesses used, game is over")
         print("final score: " + str(score))
 
         return
 
+# main function for this file, can play a cmd line version of boggle w/3 guesses per board
 def main():
-    #board = GameBoard(4)
     game = Session()
     print("game and dict loaded")
 
