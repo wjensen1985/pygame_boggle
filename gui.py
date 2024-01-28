@@ -404,6 +404,9 @@ class Game():
             
             if self.inAfterGame:
                 newGame = self.after_game(outputs)
+                optionsBtn.color = (255,255,255)
+                playButton.color = (255,255,255)
+                viewHighScores.color = (255,255,255)
 
             if newGame:
                 self.inGame = True
@@ -440,11 +443,17 @@ class Game():
                         self.inGame = True
                     if optionsBtn.isOver(pos):
                         tmp = self.options_menu()
+                        optionsBtn.color = (255,255,255)
+                        playButton.color = (255,255,255)
+                        viewHighScores.color = (255,255,255)
                         if not tmp:
                             running = False
                             self.isOpen = False
                     if viewHighScores.isOver(pos):
                         tmp = self.show_high_scores()
+                        optionsBtn.color = (255,255,255)
+                        playButton.color = (255,255,255)
+                        viewHighScores.color = (255,255,255)
                         if not tmp:
                             running = False
                             self.isOpen = False
@@ -464,6 +473,7 @@ class Game():
                         optionsBtn.color = (225,125,125)
                     else:
                         optionsBtn.color = (255,255,255)
+
 
         return
     
@@ -589,7 +599,7 @@ class Game():
         scoreStr = "Score: " + str(score)
         scoreMsgStr = ""
         # update high scores list (will check if needed in func call)
-        if score >= self.highScores[-1]:
+        if score >= self.highScores[-1] and score > 0:
             # print(self.highScores)
             tmp = self.highScores.copy()
             tmp.reverse()

@@ -119,85 +119,6 @@ class GameBoard:
             return True
         else:
             return False
-        # def check(word):
-        #     word = word.upper()
-        #     wordList = []
-        #     quFlag = False
-            
-        #     for idx, c in enumerate(word):
-        #         curr = ""
-        #         if c == "Q":
-        #             if idx >= len(word) -1:
-        #                 quFlag = True
-        #                 #print("q at end (w/o u)")
-        #             curr += "QU"
-        #             wordList.append(curr)
-        #             continue
-        #         if idx > 0 and word[idx-1] == "Q":
-        #             if c != 'U':
-        #                 #print("q without u following")
-        #                 quFlag = True
-        #         if c == "U":
-        #             if idx >0 and word[idx-1] == "Q":
-        #                 continue
-        #         curr += c
-        #         wordList.append(curr)
-            
-        #     #print(wordList)
-        #     if quFlag:
-        #         #print("quFlag")
-        #         return False
-            
-        #     #print(letter_positions2)
-        #     if wordList[0] not in self.letterPositions:
-        #         #print("first letter not present")
-        #         return False
-
-        #     is_used = {}
-
-        #     ## make this into reset is_used dict function?
-        #     for i in range(self.size**2):
-        #         is_used[i] = False
-
-        #     def dfs(curPos, i):
-        #         #base cases: wl[i] is not in board, wl[i] is already used, i is out of bounds(end of word/full word found)
-        #         # print("curPos: " + str(curPos) + ", cur index i: " + str(i))
-        #         if i >= len(wordList):
-        #             return 1
-        #         if is_used[curPos]:
-        #             # print("letter position already used")
-        #             return 0 
-        #         if wordList[i] not in self.letterPositions:
-        #             return 0
-
-        #         #use position
-        #         is_used[curPos] = True
-
-        #         res = 0
-        #         for n in self.neighbors[curPos]:
-        #             res = max(res, dfs(n, i+1))
-        #             # print("res: " + str(res))
-        #         return res
-            
-        #     #need to call for each instance of wordlist[0] in board
-        #     ans = 0
-
-        #     for start in self.letterPositions[wordList[0]]:
-        #         ans = dfs(start, 0)
-        #         if ans == 1:
-        #             break
-        #     return ans
-
-        # inBoard = False
-        # if len(guess) <= 2 or len(guess) > 16:
-        #     return inBoard
-        # else:
-        #     inBoard = check(guess)
-        
-        # if inBoard and self.dictionary.check(guess):
-        #     return True
-        # else:
-        #     return False
 
     def solve_board(self, preFixTrie):
         visited = set()
@@ -208,18 +129,21 @@ class GameBoard:
                 return
             if (i, j) in visited:
                 return
-            curString = "".join(curPath)
-            # print(curPath)
-            # print(type(curString))
-            # print(curString)
-            #add a check here w/Trie so that can cut off calls that won't ever result in a word
-            if not preFixTrie.startsWith(curString):
-                return
 
             ####### MAKE CURR PATH A LIST OF TUPLES WITH THE I,J POSITION OF EACH LETTER, THEN MAKE A VARIABLE WITH CURRSTRING, WHICH HAS THE CURRENT LETTER STRING
             ####### THIS WAY CAN HAVE THE PATH SO WHEN DISPLAYING ANSWERS LATER, CAN DISPLAY THE ANSWER PATH WHEN ANSWER WORD IS CLICKED
 
+            curString = "".join(curPath)
+            #add a check here w/Trie so that can cut off calls that won't ever result in a word
+            if not preFixTrie.startsWith(curString):
+                return
+            
             curPath.append(self.board[i][j])
+            curString = "".join(curPath)
+
+            # if len(curPath) == 4 and curPath[1] == 'E' and curPath[2] == 'E':
+            #     print(f'i: {i}, j: {j}, curPath: {curPath}, curString: {curString}')
+            
             #if curPath is a word in trie dict, then add to results
             if preFixTrie.search(curString) and len(curString) > 2:
                 #need to add string, prev add argument: tuple(curPath.copy())
@@ -228,14 +152,13 @@ class GameBoard:
 
             for dy, dx in directions:
                 dfs(i+dy, j+dx, curPath)
+
             if len(curPath) > 0:
                 curPath.pop()
             if (i,j) in visited:
                 visited.remove((i,j))
             return
-        # for i in range(4):
-        #     for j in range(4):
-        #         dfs(i,j,[])
+
         for i in range(4):
             for j in range(4):
                 dfs(i,j,[])
