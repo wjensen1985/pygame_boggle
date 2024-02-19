@@ -130,9 +130,6 @@ class GameBoard:
             if (i, j) in visited:
                 return
 
-            ####### MAKE CURR PATH A LIST OF TUPLES WITH THE I,J POSITION OF EACH LETTER, THEN MAKE A VARIABLE WITH CURRSTRING, WHICH HAS THE CURRENT LETTER STRING
-            ####### THIS WAY CAN HAVE THE PATH SO WHEN DISPLAYING ANSWERS LATER, CAN DISPLAY THE ANSWER PATH WHEN ANSWER WORD IS CLICKED
-
             curString = "".join(curPath)
             #add a check here w/Trie so that can cut off calls that won't ever result in a word
             if not preFixTrie.startsWith(curString):
@@ -140,9 +137,6 @@ class GameBoard:
             
             curPath.append(self.board[i][j])
             curString = "".join(curPath)
-
-            # if len(curPath) == 4 and curPath[1] == 'E' and curPath[2] == 'E':
-            #     print(f'i: {i}, j: {j}, curPath: {curPath}, curString: {curString}')
             
             #if curPath is a word in trie dict, then add to results
             if preFixTrie.search(curString) and len(curString) > 2:
@@ -231,7 +225,7 @@ class Session():
         with open('preFixTrie.pickle', 'wb') as f:
             pickle.dump(preFixTrie, f)
     
-    # function for cmd lien game play
+    # function for cmd line game play
     def startGame(self):
         self.board.solution_set.clear()
         self.board.shuffle()
