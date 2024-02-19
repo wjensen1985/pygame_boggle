@@ -1,8 +1,8 @@
 # pygame_boggle
 ## boggle.py
-boggly.py description here
+boggly.py has the main game logic and can be run for a commnad line version of the game
 
 ## gui.py
-gui.py description here
+gui.py creates a pygame gui of the game as well as adds in a timer and high score saving functionality
 
-## other/misc. (will add install info here)
+## Install info:
